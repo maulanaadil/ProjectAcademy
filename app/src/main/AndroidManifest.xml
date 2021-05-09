@@ -14,16 +14,16 @@
         android:theme="@style/Theme.Academy"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".detail.DetailCourseActivity"
+            android:name="com.maulnad.academy.ui.detail.DetailCourseActivity"
             android:label="@string/title_activity_detail_course"
-            android:parentActivityName=".home.HomeActivity"
+            android:parentActivityName="com.maulnad.academy.ui.home.HomeActivity"
             android:theme="@style/Theme.Academy.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".home.HomeActivity" />
+                android:value="com.maulnad.academy.ui.home.HomeActivity" />
         </activity>
-        <activity android:name=".reader.CourseReaderActivity" />
-        <activity android:name=".home.HomeActivity">
+        <activity android:name="com.maulnad.academy.ui.reader.CourseReaderActivity" />
+        <activity android:name="com.maulnad.academy.ui.home.HomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
