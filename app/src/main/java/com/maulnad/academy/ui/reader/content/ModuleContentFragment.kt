@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.maulnad.academy.data.ModuleEntity
 import com.maulnad.academy.databinding.FragmentModuleContentBinding
 import com.maulnad.academy.ui.reader.CourseReaderViewModel
+import com.maulnad.academy.viewmodel.ViewModelFactory
 
 class ModuleContentFragment : Fragment() {
 
@@ -31,7 +32,8 @@ class ModuleContentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if(activity != null) {
-            viewModel = ViewModelProvider(requireActivity(), ViewModelProvider.NewInstanceFactory())[CourseReaderViewModel::class.java]
+            val factory = ViewModelFactory.getInstance(requireActivity())
+            viewModel = ViewModelProvider(requireActivity(), factory)[CourseReaderViewModel::class.java]
             val module = viewModel.getSelectedModule()
             populateWebView(module)
         }

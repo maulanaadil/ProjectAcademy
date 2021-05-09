@@ -1,4 +1,4 @@
-package com.maulnad.academy.data.remote.response
+package com.maulnad.academy.data.source.remote.response
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
@@ -8,5 +8,5 @@ data class ModuleResponse(
     var moduleId: String,
     var courseId: String,
     var title: String,
-    var position: String
+    var position: Int
 ) : Parcelable

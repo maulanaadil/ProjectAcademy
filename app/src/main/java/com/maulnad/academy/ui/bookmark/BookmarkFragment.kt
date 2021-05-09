@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.maulnad.academy.R
 import com.maulnad.academy.data.CourseEntity
 import com.maulnad.academy.databinding.FragmentBookmarkBinding
+import com.maulnad.academy.viewmodel.ViewModelFactory
 
 
 class BookmarkFragment : Fragment(), BookmarkFragmentCallback {
@@ -29,10 +30,8 @@ class BookmarkFragment : Fragment(), BookmarkFragmentCallback {
         super.onViewCreated(view, savedInstanceState)
         if (activity != null) {
 
-            val viewModel = ViewModelProvider(
-                this,
-                ViewModelProvider.NewInstanceFactory()
-            )[BookmarkViewModel::class.java]
+            val factory = ViewModelFactory.getInstance(requireActivity())
+            val viewModel = ViewModelProvider(this, factory)[BookmarkViewModel::class.java]
             val course = viewModel.getBookmarks()
 
             val bookmarkAdapter = BookmarkAdapter()

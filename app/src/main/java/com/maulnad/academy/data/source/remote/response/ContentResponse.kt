@@ -1,4 +1,4 @@
-package com.maulnad.academy.data.remote.response
+package com.maulnad.academy.data.source.remote.response
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize

@@ -1,8 +1,8 @@
-package com.maulnad.academy.data.remote
+package com.maulnad.academy.data.source.remote
 
-import com.maulnad.academy.data.remote.response.ContentResponse
-import com.maulnad.academy.data.remote.response.CourseResponse
-import com.maulnad.academy.data.remote.response.ModuleResponse
+import com.maulnad.academy.data.source.remote.response.ContentResponse
+import com.maulnad.academy.data.source.remote.response.CourseResponse
+import com.maulnad.academy.data.source.remote.response.ModuleResponse
 import com.maulnad.academy.utils.JsonHelper
 
 class RemoteDataSource private constructor(private val jsonHelper: JsonHelper){

@@ -15,6 +15,7 @@ import com.maulnad.academy.databinding.ActivityDetailCourseBinding
 import com.maulnad.academy.databinding.ContentDetailCourseBinding
 import com.maulnad.academy.ui.reader.CourseReaderActivity
 import com.maulnad.academy.utils.DataDummy
+import com.maulnad.academy.viewmodel.ViewModelFactory
 
 class DetailCourseActivity : AppCompatActivity() {
 
@@ -37,10 +38,8 @@ class DetailCourseActivity : AppCompatActivity() {
 
         val adapter = DetailCourseAdapter()
 
-        val viewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.NewInstanceFactory()
-        )[DetailCourseViewModel::class.java]
+        val factory = ViewModelFactory.getInstance(this)
+        val viewModel = ViewModelProvider(this, factory)[DetailCourseViewModel::class.java]
 
         val extras = intent.extras
         if (extras != null) {
