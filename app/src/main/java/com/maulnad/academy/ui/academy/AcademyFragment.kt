@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.maulnad.academy.databinding.FragmentAcademyBinding
 import com.maulnad.academy.viewmodel.ViewModelFactory
+import com.maulnad.academy.vo.Status
 
 
 class AcademyFragment : Fragment() {
@@ -29,15 +31,29 @@ class AcademyFragment : Fragment() {
 
             val factory = ViewModelFactory.getInstance(requireActivity())
             val viewModel = ViewModelProvider(this, factory)[AcademyViewModel::class.java]
-            val courses = viewModel.getCourses()
 
             val academyAdapter = AcademyAdapter()
-            academyAdapter.setCourse(courses)
+
+            viewModel.getCourses().observe(viewLifecycleOwner, { courses ->
+                if (courses != null) {
+                    when (courses.status) {
+                        Status.LOADING -> fragmentAcademyBinding?.progressBar?.visibility = View.VISIBLE
+                        Status.SUCCESS -> {
+                            fragmentAcademyBinding?.progressBar?.visibility = View.INVISIBLE
+                            academyAdapter.submitList(courses.data)
+                        }
+                        Status.ERROR -> {
+                            fragmentAcademyBinding?.progressBar?.visibility = View.GONE
+                            Toast.makeText(context, "Terjadi Kesalahan", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            })
 
             with(fragmentAcademyBinding.rvAcademy) {
-                layoutManager = LinearLayoutManager(context)
-                setHasFixedSize(true)
-                adapter = academyAdapter
+                this.layoutManager = LinearLayoutManager(context)
+                this.setHasFixedSize(true)
+                this.adapter = academyAdapter
             }
         }
     }

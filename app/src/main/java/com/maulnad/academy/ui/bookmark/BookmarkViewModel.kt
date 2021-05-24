@@ -1,10 +1,16 @@
 package com.maulnad.academy.ui.bookmark
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.maulnad.academy.data.CourseEntity
-import com.maulnad.academy.data.source.AcademyRepository
-import com.maulnad.academy.utils.DataDummy
+import androidx.paging.PagedList
+import com.maulnad.academy.data.source.local.entity.CourseEntity
+import com.maulnad.academy.data.AcademyRepository
 
 class BookmarkViewModel(private val academyRepository: AcademyRepository): ViewModel() {
-    fun getBookmarks(): List<CourseEntity> = academyRepository.getBookmarkedCourses()
+    fun getBookmarks(): LiveData<PagedList<CourseEntity>> = academyRepository.getBookmarkedCourses()
+
+    fun setBookmark(courseEntity: CourseEntity) {
+        val newState = !courseEntity.bookmarked
+        academyRepository.setCourseBookmark(courseEntity, newState)
+    }
 }

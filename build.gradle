@@ -34,9 +34,19 @@ ext {
     junitExtversion = '1.1.2'
     espressoVersion = '3.3.0'
     androidXTestVersion = '1.3.0'
+    androidCoreTestVersion = '2.1.0'
     mockitoVersion = '3.6.0'
+    mockitoKotlinVersion = '2.2.0'
+    idleResourceVersion = '3.2.0'
 
     materialVersion = '1.2.1'
     recyclerViewVersion = '1.2.0'
     glideVersion = '4.11.0'
+
+    roomVersion = '2.3.0'
+    roomRuntimeVersion = '2.2.5'
+
+    archLifecycleVersion = '2.2.0'
+
+    pagingVersion = '2.1.2'
 }

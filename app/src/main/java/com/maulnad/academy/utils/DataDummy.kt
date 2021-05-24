@@ -1,12 +1,32 @@
 package com.maulnad.academy.utils
 
-import com.maulnad.academy.data.CourseEntity
-import com.maulnad.academy.data.ModuleEntity
+import com.maulnad.academy.data.source.local.entity.ContentEntity
+import com.maulnad.academy.data.source.local.entity.CourseEntity
+import com.maulnad.academy.data.source.local.entity.CourseWithModule
+import com.maulnad.academy.data.source.local.entity.ModuleEntity
 import com.maulnad.academy.data.source.remote.response.ContentResponse
 import com.maulnad.academy.data.source.remote.response.CourseResponse
 import com.maulnad.academy.data.source.remote.response.ModuleResponse
 
 object DataDummy {
+
+    fun generateRemoteDummyContent(moduleId: String): ContentResponse =
+        ContentResponse(moduleId, "This is a dummy content")
+
+    fun generateDummyCourseWithModules(course: CourseEntity, bookmarked: Boolean): CourseWithModule {
+        course.bookmarked = bookmarked
+        return CourseWithModule(course, generateDummyModules(course.courseId))
+    }
+
+    fun generateDummyContent(moduleId: String): ContentEntity =
+        ContentEntity("This is a dummy content")
+
+    fun generateDummyModulesWithContent(courseId: String): ModuleEntity {
+        val moduleEntity = generateDummyModules(courseId)[0]
+        moduleEntity.contentEntity = generateDummyContent(moduleEntity.moduleId)
+        return moduleEntity
+    }
+
     fun generateDummyCourse(): List<CourseEntity> {
         val courses = ArrayList<CourseEntity>()
 
@@ -125,7 +145,7 @@ object DataDummy {
                 6, false
             )
         )
-        return modules;
+        return modules
     }
 
     fun generateRemoteDummyCourses(): List<CourseResponse> {
@@ -239,10 +259,6 @@ object DataDummy {
             )
         )
         return modules
-    }
-
-    fun generateRemoteDummyContent(moduleId: String): ContentResponse {
-        return ContentResponse(moduleId, "This is a dummy content")
     }
 
 

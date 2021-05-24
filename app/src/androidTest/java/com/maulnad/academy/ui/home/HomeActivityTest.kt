@@ -1,7 +1,10 @@
 package com.maulnad.academy.ui.home
 
 import androidx.recyclerview.widget.RecyclerView
+import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
+import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -9,6 +12,9 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.maulnad.academy.R
 import com.maulnad.academy.utils.DataDummy
+import com.maulnad.academy.utils.EspressoIdlingResource
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -17,6 +23,17 @@ class HomeActivityTest {
 
     @get:Rule
     var activityRule = ActivityScenarioRule(HomeActivity::class.java)
+
+    @Before
+    fun setup() {
+        ActivityScenario.launch(HomeActivity::class.java)
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.idlingResource)
+    }
+
+    @After
+    fun tearDown() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.idlingResource)
+    }
 
     @Test
     fun loadUsers() {
@@ -50,8 +67,15 @@ class HomeActivityTest {
 
     @Test
     fun loadBookmarks() {
+        onView(withId(R.id.rv_academy)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        onView(withId(R.id.action_bookmark)).perform(click())
+        onView(isRoot()).perform(ViewActions.pressBack())
         onView(withText("Bookmark")).perform(click())
         onView(withId(R.id.rv_bookmark)).check(matches(isDisplayed()))
-        onView(withId(R.id.rv_bookmark)).perform(RecyclerViewActions.scrollToPosition<RecyclerView.ViewHolder>(dummyCourse.size))
+        onView(withId(R.id.rv_bookmark)).perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        onView(withId(R.id.text_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.text_date)).check(matches(isDisplayed()))
+        onView(withId(R.id.action_bookmark)).perform(click())
+        onView(isRoot()).perform(ViewActions.pressBack())
     }
 }

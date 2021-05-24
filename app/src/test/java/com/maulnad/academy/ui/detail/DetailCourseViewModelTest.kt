@@ -1,10 +1,18 @@
 package com.maulnad.academy.ui.detail
 
-import com.maulnad.academy.data.source.AcademyRepository
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import com.maulnad.academy.data.source.local.entity.CourseEntity
+import com.maulnad.academy.data.source.local.entity.ModuleEntity
+import com.maulnad.academy.data.AcademyRepository
+import com.maulnad.academy.data.source.local.entity.CourseWithModule
 import com.maulnad.academy.utils.DataDummy
+import com.maulnad.academy.vo.Resource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -15,12 +23,18 @@ import org.mockito.junit.MockitoJUnitRunner
 @RunWith(MockitoJUnitRunner::class)
 class DetailCourseViewModelTest {
 
+    @get: Rule
+    var instantTaskExecutorRule = InstantTaskExecutorRule()
+
     private lateinit var viewModel: DetailCourseViewModel
     private val dummyCourse = DataDummy.generateDummyCourse()[0]
     private val courseId = dummyCourse.courseId
 
     @Mock
     private lateinit var academyRepository: AcademyRepository
+
+    @Mock
+    private lateinit var observer: Observer<Resource<CourseWithModule>>
 
     @Before
     fun setUp() {
@@ -29,26 +43,13 @@ class DetailCourseViewModelTest {
     }
 
     @Test
-    fun getCourse() {
-        `when`(academyRepository.getCourseWithModules(courseId)).thenReturn(dummyCourse)
-        viewModel.setSelectedCourse(dummyCourse.courseId)
-        val courseEntity = viewModel.getCourse()
-        verify(academyRepository).getCourseWithModules(courseId)
-        assertNotNull(courseEntity)
-        assertEquals(dummyCourse.courseId, courseEntity.courseId)
-        assertEquals(dummyCourse.deadline, courseEntity.deadline)
-        assertEquals(dummyCourse.description, courseEntity.description)
-        assertEquals(dummyCourse.imagePath, courseEntity.imagePath)
-        assertEquals(dummyCourse.title, courseEntity.title)
-    }
+    fun getCourseWithModule() {
+        val dummyCourseWithModule = Resource.success(DataDummy.generateDummyCourseWithModules(dummyCourse, true))
+        val course = MutableLiveData<Resource<CourseWithModule>>()
+        course.value = dummyCourseWithModule
+        `when`(academyRepository.getCourseWithModules(courseId)).thenReturn(course)
 
-    @Test
-    fun getModules() {
-        `when`(academyRepository.getAllModulesByCourse(courseId))
-            .thenReturn(DataDummy.generateDummyModules(courseId))
-        val moduleEntities = viewModel.getModules()
-        verify(academyRepository).getAllModulesByCourse(courseId)
-        assertNotNull(moduleEntities)
-        assertEquals(7, moduleEntities.size.toLong())
+        viewModel.courseModule.observeForever(observer)
+        verify(observer).onChanged(dummyCourseWithModule)
     }
 }

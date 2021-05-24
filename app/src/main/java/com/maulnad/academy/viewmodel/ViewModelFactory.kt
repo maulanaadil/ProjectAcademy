@@ -3,7 +3,7 @@ package com.maulnad.academy.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.maulnad.academy.data.source.AcademyRepository
+import com.maulnad.academy.data.AcademyRepository
 import com.maulnad.academy.di.Injection
 import com.maulnad.academy.ui.academy.AcademyViewModel
 import com.maulnad.academy.ui.bookmark.BookmarkViewModel

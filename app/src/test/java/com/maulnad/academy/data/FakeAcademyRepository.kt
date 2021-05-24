@@ -1,96 +1,156 @@
 package com.maulnad.academy.data
 
-import com.maulnad.academy.data.source.AcademyDataSource
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
+import com.maulnad.academy.data.source.local.LocalDataSource
+import com.maulnad.academy.data.source.local.entity.ContentEntity
+import com.maulnad.academy.data.source.local.entity.CourseEntity
+import com.maulnad.academy.data.source.local.entity.CourseWithModule
+import com.maulnad.academy.data.source.local.entity.ModuleEntity
+import com.maulnad.academy.data.source.remote.ApiResponse
+import com.maulnad.academy.data.source.remote.RemoteDataSource.*
 import com.maulnad.academy.data.source.remote.RemoteDataSource
+import com.maulnad.academy.data.source.remote.response.ContentResponse
+import com.maulnad.academy.data.source.remote.response.CourseResponse
+import com.maulnad.academy.data.source.remote.response.ModuleResponse
+import com.maulnad.academy.utils.AppExecutors
+import com.maulnad.academy.vo.Resource
 
-class FakeAcademyRepository(private val remoteDataSource: RemoteDataSource):
-    AcademyDataSource {
+class FakeAcademyRepository constructor(
+    private val remoteDataSource: RemoteDataSource,
+    private val localDataSource: LocalDataSource,
+    private val appExecutors: AppExecutors
+) : AcademyDataSource {
 
-    override fun getAllCourses(): List<CourseEntity> {
-        val courseResponses = remoteDataSource.getAllCourses()
-        val courseList = ArrayList<CourseEntity>()
-
-        for (response in courseResponses) {
-            val course = CourseEntity(
-                response.id,
-                response.title,
-                response.description,
-                response.date,
-                false,
-                response.imagePath
-            )
-            courseList.add(course)
-        }
-        return courseList
-    }
-
-    override fun getBookmarkedCourses(): List<CourseEntity> {
-        val courseResponses = remoteDataSource.getAllCourses()
-        val courseList = ArrayList<CourseEntity>()
-        for (response in courseResponses) {
-            val course = CourseEntity(
-                response.id,
-                response.title,
-                response.description,
-                response.date,
-                false,
-                response.imagePath
-            )
-            courseList.add(course)
-        }
-        return courseList
-    }
-
-    override fun getCourseWithModules(courseId: String): CourseEntity {
-        val courseResponse = remoteDataSource.getAllCourses()
-        lateinit var course: CourseEntity
-        for (response in courseResponse) {
-            if (response.id == courseId) {
-                course = CourseEntity(
-                    response.id,
-                    response.title,
-                    response.description,
-                    response.date,
-                    false,
-                    response.imagePath
-                )
+    override fun getAllCourses(): LiveData<Resource<PagedList<CourseEntity>>> {
+        return object :
+            NetworkBoundResource<PagedList<CourseEntity>, List<CourseResponse>>(appExecutors) {
+            override fun loadFromDB(): LiveData<PagedList<CourseEntity>> {
+                val config = PagedList.Config.Builder()
+                    .setEnablePlaceholders(false)
+                    .setInitialLoadSizeHint(4)
+                    .setPageSize(4)
+                    .build()
+                return LivePagedListBuilder(localDataSource.getAllCourses(), config).build()
             }
-        }
-        return course
-    }
 
-    override fun getAllModulesByCourse(courseId: String): List<ModuleEntity> {
-        val moduleResponse = remoteDataSource.getModule(courseId)
-        val moduleList = ArrayList<ModuleEntity>()
-        for (response in moduleResponse) {
-            val module = ModuleEntity(
-                response.moduleId,
-                response.courseId,
-                response.title,
-                response.position,
-                false
-            )
-            moduleList.add(module)
-        }
-        return moduleList
-    }
+            override fun shouldFetch(data: PagedList<CourseEntity>?): Boolean =
+                data == null || data.isEmpty()
 
-    override fun getContent(courseId: String, moduleId: String): ModuleEntity {
-        val contentResponse = remoteDataSource.getModule(courseId)
-        lateinit var module: ModuleEntity
-        for (response in contentResponse) {
-            if (response.moduleId == moduleId ) {
-                module = ModuleEntity(
-                    response.moduleId,
-                    response.courseId,
-                    response.title,
-                    response.position,
-                    false
-                )
-                module.contentEntity = ContentEntity(remoteDataSource.getContent(moduleId).content)
-                break
+            override fun createCall(): LiveData<ApiResponse<List<CourseResponse>>> =
+                remoteDataSource.getAllCourses()
+
+            override fun saveCallResult(courseResponse: List<CourseResponse>) {
+                val courseList = ArrayList<CourseEntity>()
+                for (response in courseResponse) {
+                    val course = CourseEntity(
+                        response.id,
+                        response.title,
+                        response.description,
+                        response.date,
+                        false,
+                        response.imagePath
+                    )
+                    courseList.add(course)
+                }
+                localDataSource.insertCourses(courseList)
             }
-        }
-        return module
+
+        }.asLiveData()
     }
+
+    override fun getCourseWithModules(courseId: String): LiveData<Resource<CourseWithModule>> {
+        return object : NetworkBoundResource<CourseWithModule, List<ModuleResponse>>(appExecutors) {
+            override fun loadFromDB(): LiveData<CourseWithModule> =
+                localDataSource.getCourseWithModule(courseId)
+
+            override fun shouldFetch(data: CourseWithModule?): Boolean =
+                data?.mModule == null || data.mModule.isEmpty()
+
+            override fun createCall(): LiveData<ApiResponse<List<ModuleResponse>>> =
+                remoteDataSource.getModule(courseId)
+
+            override fun saveCallResult(moduleResponse: List<ModuleResponse>) {
+                val moduleList = ArrayList<ModuleEntity>()
+                for (response in moduleResponse) {
+                    val course = ModuleEntity(
+                        response.moduleId,
+                        response.courseId,
+                        response.title,
+                        response.position,
+                        false
+                    )
+                    moduleList.add(course)
+                }
+                localDataSource.insertModules(moduleList)
+            }
+
+        }.asLiveData()
+    }
+
+    override fun getAllModulesByCourse(courseId: String): LiveData<Resource<List<ModuleEntity>>> {
+        return object :
+            NetworkBoundResource<List<ModuleEntity>, List<ModuleResponse>>(appExecutors) {
+            override fun loadFromDB(): LiveData<List<ModuleEntity>> =
+                localDataSource.getAllModulesByCourse(courseId)
+
+            override fun shouldFetch(modules: List<ModuleEntity>?): Boolean =
+                modules == null || modules.isEmpty()
+
+            override fun createCall(): LiveData<ApiResponse<List<ModuleResponse>>> =
+                remoteDataSource.getModule(courseId)
+
+            override fun saveCallResult(moduleResponse: List<ModuleResponse>) {
+                val moduleList = ArrayList<ModuleEntity>()
+                for (response in moduleResponse) {
+                    val module = ModuleEntity(
+                        response.moduleId,
+                        response.courseId,
+                        response.title,
+                        response.position,
+                        false
+                    )
+                    moduleList.add(module)
+                }
+                localDataSource.insertModules(moduleList)
+            }
+
+        }.asLiveData()
+    }
+
+    override fun getContent(moduleId: String): LiveData<Resource<ModuleEntity>> {
+        return object : NetworkBoundResource<ModuleEntity, ContentResponse>(appExecutors) {
+            override fun loadFromDB(): LiveData<ModuleEntity> =
+                localDataSource.getModuleWithContent(moduleId)
+
+            override fun shouldFetch(moduleEntity: ModuleEntity?): Boolean =
+                moduleEntity?.contentEntity == null
+
+            override fun createCall(): LiveData<ApiResponse<ContentResponse>> =
+                remoteDataSource.getContent(moduleId)
+
+            override fun saveCallResult(contentResponse: ContentResponse) =
+                localDataSource.updateContent(contentResponse.content.toString(), moduleId)
+
+        }.asLiveData()
+    }
+
+    override fun getBookmarkedCourses(): LiveData<PagedList<CourseEntity>> {
+        val config = PagedList.Config.Builder()
+            .setEnablePlaceholders(false)
+            .setInitialLoadSizeHint(4)
+            .setPageSize(4)
+            .build()
+        return LivePagedListBuilder(localDataSource.getBookmarkedCourse(), config).build()
+    }
+
+
+    override fun setCourseBookmark(course: CourseEntity, state: Boolean) =
+        appExecutors.diskIO().execute { localDataSource.setCourseBookmark(course, state) }
+
+    override fun setReadModule(module: ModuleEntity) =
+        appExecutors.diskIO().execute { localDataSource.setReadModule(module) }
+
 }
